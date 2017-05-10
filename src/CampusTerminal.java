@@ -2,26 +2,22 @@
  * Created by qbx on 2017/4/20.
  */
 import okhttp3.*;
-import okio.*;
 import org.jsoup.*;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map.*;
-import java.util.HashMap.*;
 import java.util.List;
 
 public class CampusTerminal {
 //    private static HashMap informationMap;
-    private static HashMap informationMap = new HashMap();
+    private static HashMap<String, ArrayList<String>> informationMap = new HashMap<>();
     private static OkHttpClient mOkHttpClient = new OkHttpClient().newBuilder()
             .cookieJar(new CookieJar() {
                 List<Cookie> cookies;
@@ -34,11 +30,11 @@ public class CampusTerminal {
                 public List<Cookie> loadForRequest(HttpUrl url) {
                     if (cookies != null)
                         return cookies;
-                    return new ArrayList<Cookie>();
+                    return new ArrayList<>();
                 }
             }).build();
 
-    static Void ctSpTop() throws IOException{
+    private static Void ctSpTop() throws IOException{
 
 
         final Request request = new Request.Builder()
@@ -57,12 +53,12 @@ public class CampusTerminal {
         return null;
     }
 
-    static void ctInformationFromUniversity() throws IOException{
-        final  ArrayList titleList = new ArrayList();
-        final ArrayList dateListSending =new ArrayList();
-        final ArrayList dateListReading = new ArrayList();
-        final ArrayList sourceList =new ArrayList();
-        final ArrayList linkList = new ArrayList();
+    private static void ctInformationFromUniversity() throws IOException{
+        final ArrayList<String> titleList = new ArrayList<>();
+        final ArrayList<String> dateListSending =new ArrayList<String>();
+        final ArrayList<String> dateListReading = new ArrayList<String>();
+        final ArrayList<String> sourceList =new ArrayList<>();
+        final ArrayList<String> linkList = new ArrayList<>();
         informationMap.clear();
 //        HashMap informationMap = new HashMap();
         int n = 1;
@@ -113,18 +109,48 @@ public class CampusTerminal {
 
     }
 
-    static Void ctInformationFromUniversityDetail(int messageNo) throws IOException{
-        ArrayList links = (ArrayList) informationMap.get("link");
+    private static void ctInformationFromUniversityDetail(int messageNo) throws IOException{
+        ArrayList<String> links = informationMap.get("link");
         final Request request = new Request.Builder()
-                .url("https://portal2.apu.ac.jp/campusp/"+(String) links.get(messageNo))
+                .url("https://portal2.apu.ac.jp/campusp/"+ links.get(messageNo))
+
                 .build();
         Response response = mOkHttpClient.newCall(request).execute();
-        System.out.println(response.body().string());
-        return null;
+        String html = response.body().string();
+//        System.out.println(html);
+//        System.out.println(response.body().toString());
+        Document document = Jsoup.parse(html);
+        System.out.println(document.body().text());
+        document.outputSettings(new Document.OutputSettings().prettyPrint(false));
+//        System.out.println(document.text());
+        Element detail = document.getElementById("detail");
+        System.out.println(detail.text());
+        String content = detail.select("h3:eq(1)").text();
+//        System.out.println(content);
+        String body = detail.select("p:not(.content)").toString();
+        System.out.println(br2nl(body));
+
+    }
+    private static String br2nl(String html) {
+        if(html==null)
+            return html;
+        Document document = Jsoup.parse(html);
+        document.outputSettings(new Document.OutputSettings().prettyPrint(false));//makes html() preserve linebreaks and spacing
+        document.select("br").append("\\n");
+        document.select("p").prepend("\\n\\n");
+        String s = document.html().replaceAll("\\\\n", "\n");
+        return Jsoup.clean(s, "", Whitelist.none(), new Document.OutputSettings().prettyPrint(false));
     }
 
+    static String cleanPreserveLineBreaks(String bodyHtml) {
 
-    static Void ctInformation() throws IOException{
+        // get pretty printed html with preserved br and p tags
+        String prettyPrintedBodyFragment = Jsoup.clean(bodyHtml, "", Whitelist.none().addTags("br", "p"), new Document.OutputSettings().prettyPrint(true));
+        // get plain text with preserved line breaks by disabled prettyPrint
+        return Jsoup.clean(prettyPrintedBodyFragment, "", Whitelist.none(), new Document.OutputSettings().prettyPrint(false));
+    }
+
+    private static Void ctInformation() throws IOException{
         final Request request = new Request.Builder()
                 .url("https://portal2.apu.ac.jp/campusp/wbspmgjr.do?clearAccessData=true&contenam=wbspmgjr&kjnmnNo=9")
                 .build();
@@ -132,7 +158,7 @@ public class CampusTerminal {
         return null;
     }
 
-    static Void ctLogin(String username,String password) throws IOException {
+    private static Void ctLogin(String username, String password) throws IOException {
 
 
         FormBody formBody = new FormBody.Builder()
@@ -172,7 +198,7 @@ public class CampusTerminal {
         System.out.println(ctInformation());
         ctInformationFromUniversity();
         ctInformationFromUniversityDetail(0);
-        System.out.println(informationMap);
+//        System.out.println(informationMap);
     }
     public void init(){
 
