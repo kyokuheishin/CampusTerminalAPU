@@ -110,7 +110,12 @@ public class CampusTerminal {
     }
 
     private static void ctInformationFromUniversityDetail(int messageNo) throws IOException{
+        HashMap<String,ArrayList<String>> detailMap = new HashMap();
+        ArrayList<String> bodyList = new ArrayList<>();
+        ArrayList<String> otherInformationList = new ArrayList<>();
+        ArrayList<String> otherInformationContentList = new ArrayList<>();
         ArrayList<String> links = informationMap.get("link");
+
         final Request request = new Request.Builder()
                 .url("https://portal2.apu.ac.jp/campusp/"+ links.get(messageNo))
 
@@ -120,15 +125,45 @@ public class CampusTerminal {
 //        System.out.println(html);
 //        System.out.println(response.body().toString());
         Document document = Jsoup.parse(html);
-        System.out.println(document.body().text());
+//        System.out.println(document.body().text());
         document.outputSettings(new Document.OutputSettings().prettyPrint(false));
 //        System.out.println(document.text());
         Element detail = document.getElementById("detail");
-        System.out.println(detail.text());
-        String content = detail.select("h3:eq(1)").text();
+//        System.out.println(detail.text());
+//        String content = detail.select("h3:eq(1)").text();
 //        System.out.println(content);
         String body = detail.select("p:not(.content)").toString();
-        System.out.println(br2nl(body));
+        bodyList.add(br2nl(body));
+
+//        System.out.println(br2nl(body));
+        Elements otherInformations = detail.select("font.label");
+        Elements otherInformationContent = detail.select(".content");
+//        System.out.println(otherInformationContent.text());
+        for (Element otherInformation : otherInformations){
+            System.out.println(otherInformation.text());
+            otherInformationList.add(otherInformation.text());
+        }
+        Elements otherInformationLinks = detail.select("a:not([data-role])").select("a:not([onclick])");
+        for (Element otherInformationLink:otherInformationLinks){
+            System.out.println(otherInformationLink.text());
+            System.out.println(otherInformationLink.attr("href"));
+        }
+        detailMap.put("body",bodyList);
+        detailMap.put("otherInformationTitle",otherInformationList);
+        System.out.println(detailMap);
+
+//        if ()
+        if (otherInformationList.get(0) == "ＵＲＬ"){
+
+            if (otherInformationList.get(1) == "ＵＲＬ"|otherInformationList.get(1) == "添付ファイル"){
+
+            }
+        }
+        else if (otherInformationList.get(0) == "添付ファイル"){
+
+        }
+//        String otherInformation = detail.select("font.label").text();
+//        System.out.println(otherInformation);
 
     }
     private static String br2nl(String html) {
