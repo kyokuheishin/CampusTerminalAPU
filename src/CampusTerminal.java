@@ -18,6 +18,7 @@ import java.util.List;
 public class CampusTerminal {
 //    private static HashMap informationMap;
     private static HashMap<String, ArrayList<String>> informationMap = new HashMap<>();
+    private static HashMap<String,ArrayList<String>> messageMap = new HashMap<>();
     private static OkHttpClient mOkHttpClient = new OkHttpClient().newBuilder()
             .cookieJar(new CookieJar() {
                 List<Cookie> cookies;
@@ -52,41 +53,63 @@ public class CampusTerminal {
 
         return null;
     }
+    private static class ctMessage{
 
-    private static void ctInformationFromUniversity() throws IOException{
-        final ArrayList<String> titleList = new ArrayList<>();
-        final ArrayList<String> dateListSending =new ArrayList<String>();
-        final ArrayList<String> dateListReading = new ArrayList<String>();
-        final ArrayList<String> sourceList =new ArrayList<>();
-        final ArrayList<String> linkList = new ArrayList<>();
-        informationMap.clear();
-//        HashMap informationMap = new HashMap();
-        int n = 1;
-        final Request request = new Request.Builder()
-                .url("https://portal2.apu.ac.jp/campusp/wbspmgjr.do?buttonName=searchList&msgsyucds=03")
-                .build();
-        Response response = mOkHttpClient.newCall(request).execute();
-        String html = response.body().string();
-//        System.out.println(response.body().toString());
-        Document document = Jsoup.parse(html);
-        Elements cells = document.select("li a");
-        for (Element cell :cells) {
-            String title = cell.getElementsByTag("h4").text();
-            String dateSending = cell.select(".date:eq(1)").text();
-            String dateReading = cell.select(".date:eq(2)").text();
-            String source = cell.select("[style=\"white-space: normal;\"]").text();
-            String link =cell.attr("href");
-            titleList.add(title);
-            dateListSending.add(dateSending);
-            dateListReading.add(dateReading);
-            sourceList.add(source);
-            linkList.add(link);
+        private static void getInformationFromUniversity() throws IOException {
+            ctGetMessage(0);
         }
-        informationMap.put("title",titleList);
-        informationMap.put("dateSending",dateListSending);
-        informationMap.put("dateReading",dateListReading);
-        informationMap.put("source",sourceList);
-        informationMap.put("link",linkList);
+
+        private static void getImportantMessageToYou() throws IOException{
+            ctGetMessage(1);
+        }
+        private static void ctGetMessage(int type) throws IOException{
+            HashMap<String, ArrayList<String>> map = new HashMap<>();
+            String msgsyucds = new String();
+            final ArrayList<String> titleList = new ArrayList<>();
+            final ArrayList<String> dateListSending =new ArrayList<String>();
+            final ArrayList<String> dateListReading = new ArrayList<String>();
+            final ArrayList<String> sourceList =new ArrayList<>();
+            final ArrayList<String> linkList = new ArrayList<>();
+            if (type == 0){
+                informationMap.clear();
+                map =informationMap;
+                msgsyucds = "03";
+            }
+            else if (type == 1){
+                messageMap.clear();
+                map = messageMap;
+                msgsyucds = "05";
+            }
+
+//        HashMap informationMap = new HashMap();
+            int n = 1;
+            final Request request = new Request.Builder()
+                    .url("https://portal2.apu.ac.jp/campusp/wbspmgjr.do?buttonName=searchList&msgsyucds="+msgsyucds)
+                    .build();
+            Response response = mOkHttpClient.newCall(request).execute();
+            String html = response.body().string();
+//        System.out.println(response.body().toString());
+            Document document = Jsoup.parse(html);
+            Elements cells = document.select("li a");
+            for (Element cell :cells) {
+                String title = cell.getElementsByTag("h4").text();
+                String dateSending = cell.select(".date:eq(1)").text();
+                String dateReading = cell.select(".date:eq(2)").text();
+                String source = cell.select("[style=\"white-space: normal;\"]").text();
+                String link =cell.attr("href");
+                titleList.add(title);
+                dateListSending.add(dateSending);
+                dateListReading.add(dateReading);
+                sourceList.add(source);
+                linkList.add(link);
+            }
+
+            map.put("title",titleList);
+            map.put("dateSending",dateListSending);
+            map.put("dateReading",dateListReading);
+            map.put("source",sourceList);
+            map.put("link",linkList);
+            System.out.println(map);
 //        Elements titles = document.getElementsByTag("h4");
 //        String stringtitles= document.getElementsByTag("h4").text();
 //        System.out.println(stringtitles);
@@ -107,7 +130,11 @@ public class CampusTerminal {
 //        informationMap.put("source",sourcelist);
 
 
+        }
     }
+
+
+
 
     private static void ctInformationFromUniversityDetail(int messageNo) throws IOException{
         HashMap<String,ArrayList<String>> detailMap = new HashMap();
@@ -248,8 +275,9 @@ public class CampusTerminal {
         System.out.println(ctSpTop());
         System.out.println(ctLogin(username,password));
         System.out.println(ctInformation());
-        ctInformationFromUniversity();
-        ctInformationFromUniversityDetail(1);
+        ctMessage.getImportantMessageToYou();
+//        ctMessage.getInformationFromUniversity();
+//        ctInformationFromUniversityDetail(1);
 //        System.out.println(informationMap);
     }
     public void init(){
