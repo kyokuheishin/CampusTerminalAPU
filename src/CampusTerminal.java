@@ -114,6 +114,8 @@ public class CampusTerminal {
         ArrayList<String> bodyList = new ArrayList<>();
         ArrayList<String> otherInformationList = new ArrayList<>();
         ArrayList<String> otherInformationContentList = new ArrayList<>();
+        ArrayList<String> otherInformationLinkList = new ArrayList<>();
+        ArrayList<String> otherInformationFileLinkList = new ArrayList<>();
         ArrayList<String> links = informationMap.get("link");
 
         final Request request = new Request.Builder()
@@ -137,19 +139,34 @@ public class CampusTerminal {
 
 //        System.out.println(br2nl(body));
         Elements otherInformations = detail.select("font.label");
-        Elements otherInformationContent = detail.select(".content");
+        Elements otherInformationContents = detail.select(".content");
+        Elements otherInformationLinks = detail.select("a:not([data-role])").select("a:not([onclick])");
+        Elements otherInformationFileLinks = detail.select("a:not([target])").select("a:not([data-role])");
+
 //        System.out.println(otherInformationContent.text());
         for (Element otherInformation : otherInformations){
-            System.out.println(otherInformation.text());
             otherInformationList.add(otherInformation.text());
+            System.out.println(otherInformation.text());
         }
-        Elements otherInformationLinks = detail.select("a:not([data-role])").select("a:not([onclick])");
+
+        for (Element otherInformationContent : otherInformationContents){
+            otherInformationContentList.add(otherInformationContent.text());
+            System.out.println(otherInformationContent.text());
+        }
         for (Element otherInformationLink:otherInformationLinks){
             System.out.println(otherInformationLink.text());
-            System.out.println(otherInformationLink.attr("href"));
+            otherInformationLinkList.add(otherInformationLink.attr("href"));
+        }
+
+        for (Element otherInformationFileLink:otherInformationFileLinks){
+            System.out.println(otherInformationFileLink.attr("href"));
+            otherInformationFileLinkList.add(otherInformationFileLink.attr("href"));
         }
         detailMap.put("body",bodyList);
         detailMap.put("otherInformationTitle",otherInformationList);
+        detailMap.put("otherInformationContent",otherInformationContentList);
+        detailMap.put("otherInformationLink",otherInformationLinkList);
+        detailMap.put("otherInformationFileLink",otherInformationFileLinkList);
         System.out.println(detailMap);
 
 //        if ()
@@ -232,7 +249,7 @@ public class CampusTerminal {
         System.out.println(ctLogin(username,password));
         System.out.println(ctInformation());
         ctInformationFromUniversity();
-        ctInformationFromUniversityDetail(0);
+        ctInformationFromUniversityDetail(1);
 //        System.out.println(informationMap);
     }
     public void init(){
