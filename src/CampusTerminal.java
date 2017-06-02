@@ -17,7 +17,7 @@ import java.util.List;
 
 public class CampusTerminal {
 //    private static HashMap informationMap;
-    private static HashMap<String, ArrayList<String>> informationMap = new HashMap<>();
+//    private static HashMap<String, ArrayList<String>> informationMap = new HashMap<>();
     private static HashMap<String,ArrayList<String>> messageMap = new HashMap<>();
     private static OkHttpClient mOkHttpClient = new OkHttpClient().newBuilder()
             .cookieJar(new CookieJar() {
@@ -56,28 +56,25 @@ public class CampusTerminal {
     private static class ctMessage{
 
         private static void getInformationFromUniversity() throws IOException {
-            ctGetMessage(0);
+            ctGetMessageList(0);
         }
 
         private static void getImportantMessageToYou() throws IOException{
-            ctGetMessage(1);
+            ctGetMessageList(1);
         }
-        private static void ctGetMessage(int type) throws IOException{
-            HashMap<String, ArrayList<String>> map = new HashMap<>();
+        private static void ctGetMessageList(int type) throws IOException{
+//            HashMap<String, ArrayList<String>> map = new HashMap<>();
             String msgsyucds = new String();
             final ArrayList<String> titleList = new ArrayList<>();
             final ArrayList<String> dateListSending =new ArrayList<String>();
             final ArrayList<String> dateListReading = new ArrayList<String>();
             final ArrayList<String> sourceList =new ArrayList<>();
             final ArrayList<String> linkList = new ArrayList<>();
+            messageMap.clear();
             if (type == 0){
-                informationMap.clear();
-                map =informationMap;
                 msgsyucds = "03";
             }
             else if (type == 1){
-                messageMap.clear();
-                map = messageMap;
                 msgsyucds = "05";
             }
 
@@ -104,12 +101,12 @@ public class CampusTerminal {
                 linkList.add(link);
             }
 
-            map.put("title",titleList);
-            map.put("dateSending",dateListSending);
-            map.put("dateReading",dateListReading);
-            map.put("source",sourceList);
-            map.put("link",linkList);
-            System.out.println(map);
+            messageMap.put("title",titleList);
+            messageMap.put("dateSending",dateListSending);
+            messageMap.put("dateReading",dateListReading);
+            messageMap.put("source",sourceList);
+            messageMap.put("link",linkList);
+            System.out.println(messageMap);
 //        Elements titles = document.getElementsByTag("h4");
 //        String stringtitles= document.getElementsByTag("h4").text();
 //        System.out.println(stringtitles);
@@ -131,85 +128,85 @@ public class CampusTerminal {
 
 
         }
-    }
+        private static void ctGetMessageDetail(int messageNo) throws IOException{
+            HashMap<String,ArrayList<String>> detailMap = new HashMap();
+            ArrayList<String> bodyList = new ArrayList<>();
+            ArrayList<String> otherInformationList = new ArrayList<>();
+            ArrayList<String> otherInformationContentList = new ArrayList<>();
+            ArrayList<String> otherInformationLinkList = new ArrayList<>();
+            ArrayList<String> otherInformationFileLinkList = new ArrayList<>();
+            ArrayList<String> links = messageMap.get("link");
 
-
-
-
-    private static void ctInformationFromUniversityDetail(int messageNo) throws IOException{
-        HashMap<String,ArrayList<String>> detailMap = new HashMap();
-        ArrayList<String> bodyList = new ArrayList<>();
-        ArrayList<String> otherInformationList = new ArrayList<>();
-        ArrayList<String> otherInformationContentList = new ArrayList<>();
-        ArrayList<String> otherInformationLinkList = new ArrayList<>();
-        ArrayList<String> otherInformationFileLinkList = new ArrayList<>();
-        ArrayList<String> links = informationMap.get("link");
-
-        final Request request = new Request.Builder()
-                .url("https://portal2.apu.ac.jp/campusp/"+ links.get(messageNo))
-
-                .build();
-        Response response = mOkHttpClient.newCall(request).execute();
-        String html = response.body().string();
+            final Request request = new Request.Builder()
+                    .url("https://portal2.apu.ac.jp/campusp/"+ links.get(messageNo))
+                    .build();
+            Response response = mOkHttpClient.newCall(request).execute();
+            String html = response.body().string();
 //        System.out.println(html);
 //        System.out.println(response.body().toString());
-        Document document = Jsoup.parse(html);
+            Document document = Jsoup.parse(html);
 //        System.out.println(document.body().text());
-        document.outputSettings(new Document.OutputSettings().prettyPrint(false));
+            document.outputSettings(new Document.OutputSettings().prettyPrint(false));
 //        System.out.println(document.text());
-        Element detail = document.getElementById("detail");
+            Element detail = document.getElementById("detail");
 //        System.out.println(detail.text());
 //        String content = detail.select("h3:eq(1)").text();
 //        System.out.println(content);
-        String body = detail.select("p:not(.content)").toString();
-        bodyList.add(br2nl(body));
+            String body = detail.select("p:not(.content)").toString();
+            bodyList.add(br2nl(body));
 
 //        System.out.println(br2nl(body));
-        Elements otherInformations = detail.select("font.label");
-        Elements otherInformationContents = detail.select(".content");
-        Elements otherInformationLinks = detail.select("a:not([data-role])").select("a:not([onclick])");
-        Elements otherInformationFileLinks = detail.select("a:not([target])").select("a:not([data-role])");
+            Elements otherInformations = detail.select("font.label");
+            Elements otherInformationContents = detail.select(".content");
+            Elements otherInformationLinks = detail.select("a:not([data-role])").select("a:not([onclick])");
+            Elements otherInformationFileLinks = detail.select("a:not([target])").select("a:not([data-role])");
 
 //        System.out.println(otherInformationContent.text());
-        for (Element otherInformation : otherInformations){
-            otherInformationList.add(otherInformation.text());
-            System.out.println(otherInformation.text());
-        }
+            for (Element otherInformation : otherInformations){
+                otherInformationList.add(otherInformation.text());
+                System.out.println(otherInformation.text());
+            }
 
-        for (Element otherInformationContent : otherInformationContents){
-            otherInformationContentList.add(otherInformationContent.text());
-            System.out.println(otherInformationContent.text());
-        }
-        for (Element otherInformationLink:otherInformationLinks){
-            System.out.println(otherInformationLink.text());
-            otherInformationLinkList.add(otherInformationLink.attr("href"));
-        }
+            for (Element otherInformationContent : otherInformationContents){
+                otherInformationContentList.add(otherInformationContent.text());
+                System.out.println(otherInformationContent.text());
+            }
+            for (Element otherInformationLink:otherInformationLinks){
+                System.out.println(otherInformationLink.text());
+                otherInformationLinkList.add(otherInformationLink.attr("href"));
+            }
 
-        for (Element otherInformationFileLink:otherInformationFileLinks){
-            System.out.println(otherInformationFileLink.attr("href"));
-            otherInformationFileLinkList.add(otherInformationFileLink.attr("href"));
-        }
-        detailMap.put("body",bodyList);
-        detailMap.put("otherInformationTitle",otherInformationList);
-        detailMap.put("otherInformationContent",otherInformationContentList);
-        detailMap.put("otherInformationLink",otherInformationLinkList);
-        detailMap.put("otherInformationFileLink",otherInformationFileLinkList);
-        System.out.println(detailMap);
+            for (Element otherInformationFileLink:otherInformationFileLinks){
+                System.out.println(otherInformationFileLink.attr("href"));
+                otherInformationFileLinkList.add(otherInformationFileLink.attr("href"));
+            }
+            detailMap.put("body",bodyList);
+            detailMap.put("otherInformationTitle",otherInformationList);
+            detailMap.put("otherInformationContent",otherInformationContentList);
+            detailMap.put("otherInformationLink",otherInformationLinkList);
+            detailMap.put("otherInformationFileLink",otherInformationFileLinkList);
+            System.out.println(detailMap);
 
 //        if ()
-        if (otherInformationList.get(0) == "ＵＲＬ"){
+            if (otherInformationList.get(0) == "ＵＲＬ"){
 
-            if (otherInformationList.get(1) == "ＵＲＬ"|otherInformationList.get(1) == "添付ファイル"){
+                if (otherInformationList.get(1) == "ＵＲＬ"|otherInformationList.get(1) == "添付ファイル"){
+
+                }
+            }
+            else if (otherInformationList.get(0) == "添付ファイル"){
 
             }
-        }
-        else if (otherInformationList.get(0) == "添付ファイル"){
-
-        }
 //        String otherInformation = detail.select("font.label").text();
 //        System.out.println(otherInformation);
 
+        }
     }
+
+
+
+
+
     private static String br2nl(String html) {
         if(html==null)
             return html;
@@ -275,9 +272,9 @@ public class CampusTerminal {
         System.out.println(ctSpTop());
         System.out.println(ctLogin(username,password));
         System.out.println(ctInformation());
-        ctMessage.getImportantMessageToYou();
-//        ctMessage.getInformationFromUniversity();
-//        ctInformationFromUniversityDetail(1);
+//        ctMessage.getImportantMessageToYou();
+        ctMessage.getInformationFromUniversity();
+        ctMessage.ctGetMessageDetail(1);
 //        System.out.println(informationMap);
     }
     public void init(){
