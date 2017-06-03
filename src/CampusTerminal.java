@@ -24,6 +24,7 @@ public class CampusTerminal {
 //    private static HashMap informationMap;
 //    private static HashMap<String, ArrayList<String>> informationMap = new HashMap<>();
     private static HashMap<String,ArrayList<String>> messageMap = new HashMap<>();
+    private static HashMap<String,ArrayList<String>> noticeMap = new HashMap<>();
     private static OkHttpClient mOkHttpClient = new OkHttpClient().newBuilder()
             .cookieJar(new CookieJar() {
                 List<Cookie> cookies;
@@ -191,21 +192,47 @@ public class CampusTerminal {
         final static ArrayList<String> titleList = new ArrayList<>();
         final static ArrayList<String> timeList = new ArrayList<>();
         final static ArrayList<String> teacherList = new ArrayList<>();
-        final static ArrayList<String> dateList = new ArrayList<>();
-        final static ArrayList<String> NoticeSendingDateList = new ArrayList<>();
+        final static ArrayList<String> contentList = new ArrayList<>();
+        final static ArrayList<String> noticeSendingDateList = new ArrayList<>();
 
         private static void ctGetCourseNoticeList() throws IOException {
+            noticeMap.clear();
             titleList.clear();
             timeList.clear();
             teacherList.clear();
-            dateList.clear();
-            NoticeSendingDateList.clear();
+            contentList.clear();
+            noticeSendingDateList.clear();
             File input = new File("C:\\Users\\qbx\\Documents\\Campus Terminal.html");
             Document doc = Jsoup.parse(input,"UTF-8");
-            Elements titles = doc.select(".rsunamC");
-            Elements times = doc.select(".yobijigen");
-            Elements teachers =doc.select("shimei");
-            Elements dates = doc.select(".ui-li-desc");
+            Elements cells = doc.select("a.ui-link-inherit");
+            for (Element cell : cells){
+                String title = cell.select(".rsunamC").text();
+                String time = cell.select(".yobijigen").text();
+                String teacher = cell.select(".shimei").text();
+                String content = cell.select(".ui-li-desc:eq(4)").text();
+                String NoticeSendingDate = cell.select(".ui-li-desc:eq(5)").text();
+                titleList.add(title);
+                timeList.add(time);
+                teacherList.add(teacher);
+                contentList.add(content);
+                noticeSendingDateList.add(NoticeSendingDate);
+            }
+            noticeMap.put("title",titleList);
+            noticeMap.put("time",timeList);
+            noticeMap.put("teacher",teacherList);
+            noticeMap.put("content", contentList);
+            noticeMap.put("noticeSendingDate",noticeSendingDateList);
+            System.out.println(noticeMap);
+//            Elements titles = doc.select(".rsunamC");
+//            Elements times = doc.select(".yobijigen");
+//            Elements teachers =doc.select(".shimei");
+//            Elements dates = doc.select(".ui-li-desc");
+        }
+
+        private static void ctGetCourseNoticeDetail() throws IOException {
+            File input = new File("C:\\Users\\qbx\\Documents\\Campus Terminal2.html");
+            Document doc = Jsoup.parse(input,"UTF-8");
+
         }
     }
 
@@ -273,13 +300,14 @@ public class CampusTerminal {
         String username = br.readLine();
         String password = br.readLine();
 
-        System.out.println(ctSpTop());
-        System.out.println(ctLogin(username,password));
-        System.out.println(ctInformation());
+//        System.out.println(ctSpTop());
+//        System.out.println(ctLogin(username,password));
+//        System.out.println(ctInformation());
 //        ctMessage.getImportantMessageToYou();
 //        ctMessage.getInformationFromUniversity();
 //        ctMessage.ctGetMessageDetail(1);
 //        System.out.println(informationMap);
+        ctCourseNotice.ctGetCourseNoticeList();
     }
     public void init(){
 
