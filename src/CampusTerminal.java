@@ -1,6 +1,10 @@
 /**
  * Created by qbx on 2017/4/20.
  */
+
+/*
+APU垃圾前端吃屎吧。这是我写完这个库想对你们说的全部的话。
+ */
 import okhttp3.*;
 import org.jsoup.*;
 import org.jsoup.nodes.Document;
@@ -9,6 +13,7 @@ import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -55,6 +60,12 @@ public class CampusTerminal {
     }
     private static class ctMessage{
 
+        static final ArrayList<String> titleList = new ArrayList<>();
+        static final ArrayList<String> dateListSending =new ArrayList<String>();
+        static final ArrayList<String> dateListReading = new ArrayList<String>();
+        static final ArrayList<String> sourceList =new ArrayList<>();
+        static final ArrayList<String> linkList = new ArrayList<>();
+
         private static void getInformationFromUniversity() throws IOException {
             ctGetMessageList(0);
         }
@@ -65,11 +76,11 @@ public class CampusTerminal {
         private static void ctGetMessageList(int type) throws IOException{
 //            HashMap<String, ArrayList<String>> map = new HashMap<>();
             String msgsyucds = new String();
-            final ArrayList<String> titleList = new ArrayList<>();
-            final ArrayList<String> dateListSending =new ArrayList<String>();
-            final ArrayList<String> dateListReading = new ArrayList<String>();
-            final ArrayList<String> sourceList =new ArrayList<>();
-            final ArrayList<String> linkList = new ArrayList<>();
+            titleList.clear();
+            dateListSending.clear();
+            dateListReading.clear();
+            sourceList.clear();
+            linkList.clear();
             messageMap.clear();
             if (type == 0){
                 msgsyucds = "03";
@@ -107,24 +118,6 @@ public class CampusTerminal {
             messageMap.put("source",sourceList);
             messageMap.put("link",linkList);
             System.out.println(messageMap);
-//        Elements titles = document.getElementsByTag("h4");
-//        String stringtitles= document.getElementsByTag("h4").text();
-//        System.out.println(stringtitles);
-//        Elements dates = document.select(".date");
-//        Elements sources = document.select("[style=\"white-space: normal;\"]");
-
-//        for (Element title :titles){
-//            titlelist.add(title.text());
-//        }
-//        informationMap.put("title",titlelist);
-//        for (Element date : dates){
-//            datelist.add(date.text());
-//        }
-//        informationMap.put("date",datelist);
-//        for (Element source:sources){
-//            sourcelist.add(source.text());
-//        }
-//        informationMap.put("source",sourcelist);
 
 
         }
@@ -188,21 +181,33 @@ public class CampusTerminal {
             System.out.println(detailMap);
 
 //        if ()
-            if (otherInformationList.get(0) == "ＵＲＬ"){
-
-                if (otherInformationList.get(1) == "ＵＲＬ"|otherInformationList.get(1) == "添付ファイル"){
-
-                }
-            }
-            else if (otherInformationList.get(0) == "添付ファイル"){
-
-            }
 //        String otherInformation = detail.select("font.label").text();
 //        System.out.println(otherInformation);
 
         }
     }
 
+    private static class ctCourseNotice{
+        final static ArrayList<String> titleList = new ArrayList<>();
+        final static ArrayList<String> timeList = new ArrayList<>();
+        final static ArrayList<String> teacherList = new ArrayList<>();
+        final static ArrayList<String> dateList = new ArrayList<>();
+        final static ArrayList<String> NoticeSendingDateList = new ArrayList<>();
+
+        private static void ctGetCourseNoticeList() throws IOException {
+            titleList.clear();
+            timeList.clear();
+            teacherList.clear();
+            dateList.clear();
+            NoticeSendingDateList.clear();
+            File input = new File("C:\\Users\\qbx\\Documents\\Campus Terminal.html");
+            Document doc = Jsoup.parse(input,"UTF-8");
+            Elements titles = doc.select(".rsunamC");
+            Elements times = doc.select(".yobijigen");
+            Elements teachers =doc.select("shimei");
+            Elements dates = doc.select(".ui-li-desc");
+        }
+    }
 
 
 
@@ -239,7 +244,6 @@ public class CampusTerminal {
 
         FormBody formBody = new FormBody.Builder()
                 .addEncoded("forceDevice","sp")
-//                .addEncoded("buttonName","login")
                 .addEncoded("lang","1")
                 .addEncoded("userId",username)
                 .addEncoded("password",password)
@@ -273,8 +277,8 @@ public class CampusTerminal {
         System.out.println(ctLogin(username,password));
         System.out.println(ctInformation());
 //        ctMessage.getImportantMessageToYou();
-        ctMessage.getInformationFromUniversity();
-        ctMessage.ctGetMessageDetail(1);
+//        ctMessage.getInformationFromUniversity();
+//        ctMessage.ctGetMessageDetail(1);
 //        System.out.println(informationMap);
     }
     public void init(){
