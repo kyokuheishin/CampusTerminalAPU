@@ -12,10 +12,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -230,9 +228,28 @@ public class CampusTerminal {
         }
 
         private static void ctGetCourseNoticeDetail() throws IOException {
-            File input = new File("C:\\Users\\qbx\\Documents\\Campus Terminal2.html");
+            final ArrayList<String> titleList = new ArrayList<>();
+            final ArrayList<String> informationTitleList = new ArrayList<>();
+            final ArrayList<String> informationContentList = new ArrayList<>();
+            File input = new File("C:\\Users\\qbx\\Documents\\Campus Terminal3.html");
             Document doc = Jsoup.parse(input,"UTF-8");
+            Elements mainTitles = doc.select("[style=\"font-size: 1.8em; margin-top: 0px; margin-bottom: 0px;x\"]");
+            Elements subTitles = doc.select("[style=\"font-size: 1em;\"]");
+            Elements informationTitles = doc.select(".label");
+            Elements informationContents = doc.select("p.content");
+            titleList.add(mainTitles.text());
+            titleList.add(subTitles.text());
+            for (Element informationTitle:informationTitles){
+                    informationTitleList.add(informationTitle.text());
+                }
+            for (Element informationContent:informationContents){
+                informationContentList.add(informationContent.text());
+            }
 
+
+//            System.out.println(titleList);
+            System.out.println(informationTitleList);
+            System.out.println(informationContentList);
         }
     }
 
@@ -296,9 +313,9 @@ public class CampusTerminal {
         return null;
     }
     public static void main(String[] args) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String username = br.readLine();
-        String password = br.readLine();
+//        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+//        String username = br.readLine();
+//        String password = br.readLine();
 
 //        System.out.println(ctSpTop());
 //        System.out.println(ctLogin(username,password));
@@ -307,7 +324,7 @@ public class CampusTerminal {
 //        ctMessage.getInformationFromUniversity();
 //        ctMessage.ctGetMessageDetail(1);
 //        System.out.println(informationMap);
-        ctCourseNotice.ctGetCourseNoticeList();
+        ctCourseNotice.ctGetCourseNoticeDetail();
     }
     public void init(){
 
