@@ -12,8 +12,10 @@ import org.jsoup.nodes.Element;
 import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,12 +31,14 @@ public class CampusTerminal {
                 @Override
                 public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {
                     this.cookies = cookies;
+                    System.out.println(cookies);
                 }
 
                 @Override
                 public List<Cookie> loadForRequest(HttpUrl url) {
-                    if (cookies != null)
-                        return cookies;
+                    if (cookies != null){
+                        System.out.println(cookies);
+                        return cookies;}
                     return new ArrayList<>();
                 }
             }).build();
@@ -54,25 +58,25 @@ public class CampusTerminal {
 //                .post(formBodya)
                 .build();
         Response response = mOkHttpClient.newCall(request).execute();
-
+        System.out.println(response.header("Set-Cookie"));
         return null;
     }
-    private static class ctMessage{
+     static class ctMessage{
+        private static int page = 0;
+        private static final ArrayList<String> titleList = new ArrayList<>();
+        private static final ArrayList<String> dateListSending =new ArrayList<String>();
+        private static final ArrayList<String> dateListReading = new ArrayList<String>();
+        private static final ArrayList<String> sourceList =new ArrayList<>();
+        private static final ArrayList<String> linkList = new ArrayList<>();
 
-        static final ArrayList<String> titleList = new ArrayList<>();
-        static final ArrayList<String> dateListSending =new ArrayList<String>();
-        static final ArrayList<String> dateListReading = new ArrayList<String>();
-        static final ArrayList<String> sourceList =new ArrayList<>();
-        static final ArrayList<String> linkList = new ArrayList<>();
-
-        private static void getInformationFromUniversity() throws IOException {
+        static void getInformationFromUniversity() throws IOException {
             ctGetMessageList(0);
         }
 
-        private static void getImportantMessageToYou() throws IOException{
+        static void getImportantMessageToYou() throws IOException{
             ctGetMessageList(1);
         }
-        private static void ctGetMessageList(int type) throws IOException{
+        static HashMap ctGetMessageList(int type) throws IOException{
 //            HashMap<String, ArrayList<String>> map = new HashMap<>();
             String msgsyucds = new String();
             titleList.clear();
@@ -89,7 +93,6 @@ public class CampusTerminal {
             }
 
 //        HashMap informationMap = new HashMap();
-            int n = 1;
             final Request request = new Request.Builder()
                     .url("https://portal2.apu.ac.jp/campusp/wbspmgjr.do?buttonName=searchList&msgsyucds="+msgsyucds)
                     .build();
@@ -116,11 +119,59 @@ public class CampusTerminal {
             messageMap.put("dateReading",dateListReading);
             messageMap.put("source",sourceList);
             messageMap.put("link",linkList);
+            page = 1;
             System.out.println(messageMap);
 
+            return messageMap;
 
         }
-        private static void ctGetMessageDetail(int messageNo) throws IOException{
+
+        static void  ctGetMessageListNextPage() throws IOException{
+//            System.out.println(String.valueOf(System.currentTimeMillis()));
+            final FormBody formBody = new FormBody.Builder()
+                    .addEncoded("buttonName","backToList")
+//                    .addEncoded("timestamp",String.valueOf(System.currentTimeMillis()))
+                    .addEncoded("changeStateList","次の5件を読み込む")
+//                    .addEncoded("value(mssgcmnt)","")
+                    .build();
+
+            final Request request = new Request.Builder()
+                    .url("https://portal2.apu.ac.jp/campusp/wbspmgjr.do")
+//                    .addHeader("Referer","https://portal2.apu.ac.jp/campusp/wbspmgjr.do?buttonName=selectDetail&selectDetailIndex=0")
+                    .post(formBody)
+                    .build();
+            Response response = mOkHttpClient.newCall(request).execute();
+            String html = response.body().string();
+//            System.out.println(html);
+            Document document = Jsoup.parse(html);
+//            Elements title = document.getElementsByTag("h4");
+//            System.out.println(title.size());
+//            System.out.println(title.text());
+//            Elements cells = document.select("li a:gt("+String.valueOf(page*5-1)+")");
+            Elements cells = document.select("li a");
+            for (int i = page*5-1;i>=0;i--){
+                cells.remove(i);
+            }
+            for (Element cell :cells) {
+                String title = cell.getElementsByTag("h4").text();
+                String dateSending = cell.select(".date:eq(1)").text();
+                String dateReading = cell.select(".date:eq(2)").text();
+                String source = cell.select("[style=\"white-space: normal;\"]").text();
+                String link =cell.attr("href");
+                titleList.add(title);
+                dateListSending.add(dateSending);
+                dateListReading.add(dateReading);
+                sourceList.add(source);
+                linkList.add(link);
+            }
+            System.out.println(titleList);
+            System.out.println(dateListReading);
+            System.out.println(dateListSending);
+            System.out.println(sourceList);
+            System.out.println(linkList);
+        }
+
+        static void ctGetMessageDetail(int messageNo) throws IOException{
             HashMap<String,ArrayList<String>> detailMap = new HashMap();
             ArrayList<String> bodyList = new ArrayList<>();
             ArrayList<String> otherInformationList = new ArrayList<>();
@@ -186,14 +237,14 @@ public class CampusTerminal {
         }
     }
 
-    private static class ctCourseNotice{
+    static class ctCourseNotice{
         final static ArrayList<String> titleList = new ArrayList<>();
         final static ArrayList<String> timeList = new ArrayList<>();
         final static ArrayList<String> teacherList = new ArrayList<>();
         final static ArrayList<String> contentList = new ArrayList<>();
         final static ArrayList<String> noticeSendingDateList = new ArrayList<>();
 
-        private static void ctGetCourseNoticeList() throws IOException {
+        static void ctGetCourseNoticeList() throws IOException {
             noticeMap.clear();
             titleList.clear();
             timeList.clear();
@@ -227,7 +278,7 @@ public class CampusTerminal {
 //            Elements dates = doc.select(".ui-li-desc");
         }
 
-        private static void ctGetCourseNoticeDetail() throws IOException {
+        static void ctGetCourseNoticeDetail() throws IOException {
             final ArrayList<String> titleList = new ArrayList<>();
             final ArrayList<String> informationTitleList = new ArrayList<>();
             final ArrayList<String> informationContentList = new ArrayList<>();
@@ -275,18 +326,19 @@ public class CampusTerminal {
         return Jsoup.clean(prettyPrintedBodyFragment, "", Whitelist.none(), new Document.OutputSettings().prettyPrint(false));
     }
 
-    private static Void ctInformation() throws IOException{
+    static Void ctInformation() throws IOException{
         final Request request = new Request.Builder()
                 .url("https://portal2.apu.ac.jp/campusp/wbspmgjr.do?clearAccessData=true&contenam=wbspmgjr&kjnmnNo=9")
                 .build();
         Response response = mOkHttpClient.newCall(request).execute();
+//        response.header("Cookie")
         return null;
     }
 
-    private static Void ctLogin(String username, String password) throws IOException {
+    static Void ctLogin(String username, String password) throws IOException {
 
 
-        FormBody formBody = new FormBody.Builder()
+         FormBody formBody = new FormBody.Builder()
                 .addEncoded("forceDevice","sp")
                 .addEncoded("lang","1")
                 .addEncoded("userId",username)
@@ -308,23 +360,26 @@ public class CampusTerminal {
                 .post(formBody)
                 .build();
         Response response = mOkHttpClient.newCall(request).execute();
+        System.out.println(response.header("Set-Cookie"));
 //        JsessionID = response.header("Set-Cookie").split(";")[0];
 //        Log.d("Cookie",response.headers().toString());
         return null;
     }
     public static void main(String[] args) throws IOException {
-//        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-//        String username = br.readLine();
-//        String password = br.readLine();
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String username = br.readLine();
+        String password = br.readLine();
 
-//        System.out.println(ctSpTop());
-//        System.out.println(ctLogin(username,password));
-//        System.out.println(ctInformation());
+        System.out.println(ctSpTop());
+        System.out.println(ctLogin(username,password));
+        System.out.println(ctInformation());
 //        ctMessage.getImportantMessageToYou();
-//        ctMessage.getInformationFromUniversity();
-//        ctMessage.ctGetMessageDetail(1);
+        ctMessage.getInformationFromUniversity();
+
+//        ctMessage.ctGetMessageDetail(0);
+        ctMessage.ctGetMessageListNextPage();
 //        System.out.println(informationMap);
-        ctCourseNotice.ctGetCourseNoticeDetail();
+//        ctCourseNotice.ctGetCourseNoticeDetail();
     }
     public void init(){
 
